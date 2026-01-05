@@ -1,0 +1,136 @@
+=========================================================
+NEON DATABASE – PRODUCT TABLE QUERIES
+Service : backend-product-service
+Table   : products
+=========================================================
+
+---------------------------------------------------------
+1️⃣ ACTIVATE VIRTUAL ENVIRONMENT
+---------------------------------------------------------
+.\venv\Scripts\activate
+
+
+---------------------------------------------------------
+2️⃣ SET NEON DATABASE_URL (TEMP – CURRENT)
+---------------------------------------------------------
+$env:DATABASE_URL="postgresql://neondb_owner:npg_g8GbaMwJS7jK@ep-sweet-rain-a1c7rhca-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+
+---------------------------------------------------------
+3️⃣ START FLASK SHELL
+---------------------------------------------------------
+flask shell
+
+
+---------------------------------------------------------
+4️⃣ FLASK SHELL – PRODUCT QUERIES
+---------------------------------------------------------
+
+from app.extensions import db
+from app.models.product import Product
+
+
+print("\n==============================")
+print("📦 DATABASE TABLES")
+print("==============================")
+print(db.metadata.tables.keys())
+
+
+print("\n==============================")
+print("🛒 ALL PRODUCTS")
+print("==============================")
+
+products = Product.query.all()
+print(f"Total products count: {len(products)}\n")
+
+for p in products:
+    print(f"""
+ID          : {p.id}
+NAME        : {p.name}
+PRICE       : {p.price}
+CATEGORY    : {p.category}
+COLOR       : {p.color}
+IMAGE       : {p.image}
+CREATED_AT  : {p.created_at}
+--------------------------------
+""")
+
+
+print("\n==============================")
+print("💰 PRODUCTS WITH PRICE > 1000")
+print("==============================")
+
+for p in Product.query.filter(Product.price > 1000).all():
+    print(p.id, p.name, p.price)
+
+
+print("\n==============================")
+print("📂 PRODUCTS BY CATEGORY")
+print("==============================")
+
+for p in Product.query.filter_by(category="electronics").all():
+    print(p.id, p.name, p.category)
+
+
+print("\n==============================")
+print("🕒 LATEST PRODUCTS")
+print("==============================")
+
+for p in Product.query.order_by(Product.created_at.desc()).limit(10).all():
+    print(p.id, p.name, p.created_at)
+
+
+print("\n==============================")
+print("✅ DONE – PRODUCT QUERIES")
+print("==============================")
+
+
+---------------------------------------------------------
+5️⃣ EXIT FLASK SHELL
+---------------------------------------------------------
+exit()
+
+
+---------------------------------------------------------
+6️⃣ REMOVE DATABASE_URL (CLEAN & SAFE)
+---------------------------------------------------------
+if (Test-Path Env:DATABASE_URL) {
+    Remove-Item Env:DATABASE_URL
+    Write-Host "DATABASE_URL removed" -ForegroundColor Green
+} else {
+    Write-Host "DATABASE_URL not set" -ForegroundColor Yellow
+}
+
+
+=========================================================
+7️⃣ OPTIONAL RAW SQL (REFERENCE ONLY)
+=========================================================
+
+-- 🛒 ALL PRODUCTS
+SELECT * FROM products ORDER BY id DESC;
+
+-- 🧮 PRODUCT COUNT
+SELECT COUNT(*) AS total_products FROM products;
+
+-- 💰 FILTER BY PRICE
+SELECT id, name, price FROM products WHERE price > 1000;
+
+-- 📂 FILTER BY CATEGORY
+SELECT id, name, category FROM products WHERE category = 'electronics';
+
+-- 🕒 LATEST PRODUCTS
+SELECT * FROM products ORDER BY created_at DESC LIMIT 10;
+
+
+---------------------------------------------------------
+⚠️ DANGEROUS COMMANDS (COMMENTED – USE CAREFULLY)
+---------------------------------------------------------
+
+-- DELETE FROM products;
+-- TRUNCATE TABLE products RESTART IDENTITY CASCADE;
+-- DROP TABLE products CASCADE;
+
+
+=========================================================
+END OF FILE – docs/neon-product-queries.txt
+=========================================================
