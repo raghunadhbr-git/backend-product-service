@@ -14,8 +14,14 @@ STEP 1️⃣ : SET DATABASE_URL (PowerShell ONLY)
 # Temporarily point Flask to Neon PostgreSQL
 # This overrides SQLite for THIS terminal session only
 
-# Currently Working on this Database:
-$env:DATABASE_URL="postgresql://neondb_owner:npg_g8GbaMwJS7jK@ep-sweet-rain-a1c7rhca-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+# Old deleetd databse this one so no longer Database exists now:-
+#$env:DATABASE_URL="postgresql://neondb_owner:npg_g8GbaMwJS7jK@ep-sweet-rain-a1c7rhca-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+ 
+# New Database Created at:  5-1-26
+# ✅ FINAL CURRENT CORRECT COMMAND (PowerShell):-
+$env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_EvfIxt5VdU4b@ep-blue-moon-a1jdsww9-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
 
 ----------------------------------------------------
 STEP 2️⃣ : INSTALL POSTGRES DRIVER (ONE-TIME)
@@ -45,8 +51,18 @@ STEP 4️⃣ : APPLY MIGRATIONS TO NEON (IMPORTANT)
 
 flask db upgrade
 
+---------------------------------------------------------
+Step 5️⃣ REMOVE DATABASE_URL (CLEAN & SAFE)
+---------------------------------------------------------
+if (Test-Path Env:DATABASE_URL) {
+    Remove-Item Env:DATABASE_URL
+    Write-Host "DATABASE_URL removed" -ForegroundColor Green
+} else {
+    Write-Host "DATABASE_URL not set" -ForegroundColor Yellow
+}
+
 ----------------------------------------------------
-STEP 5️⃣ : (OPTIONAL) CLEAR DATABASE_URL
+STEP 6️⃣ : (OPTIONAL) CLEAR DATABASE_URL
 ----------------------------------------------------
 # Removes Neon URL from terminal session
 # Good practice but not mandatory
