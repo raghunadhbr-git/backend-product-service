@@ -1,0 +1,45 @@
+Orders-Flow:-
+📦 PRODUCT SERVICE (UPDATED)
+app/models/product.py
+
+===> flask db upgrade command getting errors now:-
+🛠️ FIX OPTION 1 (Recommended – Safe & Clean)
+Step 1: Edit the migration file Alembic generated
+
+Open this file:
+migrations/versions/b47eac32f068_orders_flow_v1.py
+
+You’ll see something like this in upgrade():
+with op.batch_alter_table('products', schema=None) as batch_op:
+    batch_op.add_column(sa.Column('stock', sa.Integer(), nullable=False))
+
+🔧 Replace it with THIS:
+with op.batch_alter_table('products', schema=None) as batch_op:
+    batch_op.add_column(
+        sa.Column(
+            'stock',
+            sa.Integer(),
+            nullable=False,
+            server_default='0'
+        )
+    )
+
+⚠️ Important: server_default='0' (string, not int)
+
+Step 2: (Optional but clean) Remove default after migration
+
+You can keep server_default forever — it’s fine.
+But if you want perfect schema hygiene, later you can remove it.
+
+Not required now.
+
+Step 3: Run upgrade again
+flask db upgrade
+
+✅ This will now succeed.
+
+Actual Developer Says:-
+Yes, Execyedf ianlly
+
+
+

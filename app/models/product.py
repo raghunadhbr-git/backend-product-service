@@ -14,6 +14,9 @@ class Product(db.Model):
     category = db.Column(db.String(100))
     color = db.Column(db.String(50))
 
+    # 🔥 INVENTORY
+    stock = db.Column(db.Integer, nullable=False, default=0)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
