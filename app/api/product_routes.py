@@ -15,6 +15,38 @@ def product_service_health():
 
 
 # ============================================================
+# INTERNAL: DECREASE PRODUCT STOCK (ORDERS FLOW)
+# POST /api/v1/products/decrease-stock
+# ============================================================
+@product_bp.post("/decrease-stock")
+@jwt_required()
+def decrease_stock():
+    data = request.get_json() or {}
+    items = data.get("items", [])
+
+    if not items:
+        return jsonify({"error": "No items provided"}), 400
+
+    for item in items:
+        product = Product.query.get(item["product_id"])
+        qty = int(item["quantity"])
+
+        if not product:
+            return jsonify({"error": f"Product {item['product_id']} not found"}), 404
+
+        if product.stock < qty:
+            return jsonify({
+                "error": f"Insufficient stock for product {product.id}"
+            }), 400
+
+        product.stock -= qty
+
+    db.session.commit()
+
+    return jsonify({"message": "Stock updated successfully"}), 200
+
+
+# ============================================================
 # ANGULAR HEALTH CHECK
 # ============================================================
 @angular_product_bp.get("/health")
@@ -66,70 +98,3 @@ def angular_get_products():
         }
         for p in products
     ]), 200
-
-
-# ============================================================
-# GET SINGLE PRODUCT
-# ============================================================
-@angular_product_bp.get("/get/<int:id>")
-def angular_get_single_product(id):
-    product = Product.query.get(id)
-
-    if not product:
-        return jsonify({"error": "Product not found"}), 404
-
-    return jsonify({
-        "_id": product.id,
-        "name": product.name,
-        "price": product.price,
-        "description": product.description,
-        "image": product.image,
-        "category": product.category,
-        "color": product.color,
-        "stock": product.stock
-    }), 200
-
-
-# ============================================================
-# UPDATE PRODUCT
-# ============================================================
-@angular_product_bp.patch("/update")
-@jwt_required()
-def angular_update_product():
-    data = request.get_json() or {}
-
-    product = Product.query.get(data.get("productId"))
-    if not product:
-        return jsonify({"error": "Product not found"}), 404
-
-    updated = data.get("updatedData", {})
-
-    product.name = updated.get("name", product.name)
-    product.price = float(updated.get("price", product.price))
-    product.description = updated.get("description", product.description)
-    product.image = updated.get("image", product.image)
-    product.category = updated.get("category", product.category)
-    product.color = updated.get("color", product.color)
-    product.stock = int(updated.get("stock", product.stock))
-
-    db.session.commit()
-
-    return jsonify({"message": "Product updated"}), 200
-
-
-# ============================================================
-# DELETE PRODUCT
-# ============================================================
-@angular_product_bp.delete("/delete")
-@jwt_required()
-def angular_delete_product():
-    data = request.get_json() or {}
-
-    product = Product.query.get(data.get("productId"))
-    if not product:
-        return jsonify({"error": "Product not found"}), 404
-
-    db.session.delete(product)
-    db.session.commit()
-
-    return jsonify({"message": "Product deleted"}), 200

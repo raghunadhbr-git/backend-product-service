@@ -127,3 +127,71 @@ git push -u origin feature/orders-flow-v1
 ✔️ Feature branch locked
 ✔️ Main branch untouched
 ✔️ Production safe
+
+========================================================
+9-1-26:-
+==========================================================
+# FILE NAME:
+# orders-flow-v1-product-service-steps.txt
+#
+# PURPOSE:
+# Product Service – Orders Flow v1
+# Inventory (stock) support + verification + git workflow
+# ==========================================================
+
+
+# =========================
+# 1️⃣ MIGRATION CHECK
+# =========================
+# No new migration required (stock column already exists)
+
+flask db current
+flask db upgrade
+
+
+# =========================
+# 2️⃣ FLASK SHELL VERIFY
+# =========================
+flask shell
+
+from sqlalchemy import inspect
+from app.extensions import db
+from app.models.product import Product
+
+# Check tables
+inspector = inspect(db.engine)
+print(inspector.get_table_names())
+
+# Verify product columns
+print(Product.__table__.columns.keys())
+
+# Verify stock values
+products = Product.query.all()
+[(p.id, p.name, p.stock) for p in products]
+
+exit()
+
+
+# =========================
+# 3️⃣ GIT COMMIT & PUSH
+# =========================
+git status
+git add .
+
+git commit -m "📦 Orders Flow v1: Product Inventory Management
+
+1️⃣ Added stock column support (inventory ready)
+2️⃣ Added secure stock deduction API for orders
+3️⃣ Prevents negative inventory during checkout
+4️⃣ Integrated for cart → order flow
+5️⃣ Production-ready & JWT-protected
+
+📅 2026-01-09"
+
+git push -u origin feature/orders-flow-v1
+
+
+# =========================
+# END
+# =========================
+
