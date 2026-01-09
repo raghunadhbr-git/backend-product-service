@@ -1,0 +1,9 @@
+git commit -m "feat(product-service): add inventory support for orders flow v1 🛒📦
+
+1️⃣ Added stock column to Product model with safe default value
+2️⃣ Fixed Alembic migration to support existing product rows
+3️⃣ Verified DB schema, data integrity, and migration state
+4️⃣ Prepared product service for order-based stock deduction
+5️⃣ Aligned product schema with Cart & Orders services
+
+📅 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"

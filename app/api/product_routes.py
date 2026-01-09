@@ -7,8 +7,7 @@ product_bp = Blueprint("products", __name__)
 angular_product_bp = Blueprint("angular_products", __name__)
 
 # ============================================================
-# PRODUCT SERVICE HEALTH CHECK
-# GET /api/v1/products/
+# PRODUCT SERVICE HEALTH
 # ============================================================
 @product_bp.get("/")
 def product_service_health():
@@ -17,7 +16,6 @@ def product_service_health():
 
 # ============================================================
 # ANGULAR HEALTH CHECK
-# GET /api/angularProduct/health
 # ============================================================
 @angular_product_bp.get("/health")
 def angular_health():
@@ -25,51 +23,31 @@ def angular_health():
 
 
 # ============================================================
-# ANGULAR: ADD PRODUCT
-# POST /api/angularProduct/add
+# ADD PRODUCT
 # ============================================================
 @angular_product_bp.post("/add")
 @jwt_required()
 def angular_add_product():
     data = request.get_json() or {}
 
-    name = data.get("name")
-    price = data.get("price")
-
-    if not name or price is None:
-        return jsonify({"error": "name and price are required"}), 400
-
-    try:
-        price = float(price)
-    except (ValueError, TypeError):
-        return jsonify({"error": "price must be a number"}), 400
-
     product = Product(
-        name=name,
-        price=price,
+        name=data.get("name"),
+        price=float(data.get("price")),
         description=data.get("description", ""),
         image=data.get("image", ""),
         category=data.get("category", ""),
-        color=data.get("color", "")
+        color=data.get("color", ""),
+        stock=int(data.get("stock", 0))
     )
 
     db.session.add(product)
     db.session.commit()
 
-    return jsonify({
-        "_id": product.id,
-        "name": product.name,
-        "price": product.price,
-        "description": product.description,
-        "image": product.image,
-        "category": product.category,
-        "color": product.color
-    }), 201
+    return jsonify({"message": "Product added", "_id": product.id}), 201
 
 
 # ============================================================
-# ANGULAR: GET ALL PRODUCTS
-# GET /api/angularProduct/get
+# GET ALL PRODUCTS
 # ============================================================
 @angular_product_bp.get("/get")
 def angular_get_products():
@@ -83,15 +61,15 @@ def angular_get_products():
             "description": p.description,
             "image": p.image,
             "category": p.category,
-            "color": p.color
+            "color": p.color,
+            "stock": p.stock
         }
         for p in products
     ]), 200
 
 
 # ============================================================
-# ANGULAR: GET SINGLE PRODUCT  ✅ ADDED
-# GET /api/angularProduct/get/<id>
+# GET SINGLE PRODUCT
 # ============================================================
 @angular_product_bp.get("/get/<int:id>")
 def angular_get_single_product(id):
@@ -107,59 +85,47 @@ def angular_get_single_product(id):
         "description": product.description,
         "image": product.image,
         "category": product.category,
-        "color": product.color
+        "color": product.color,
+        "stock": product.stock
     }), 200
 
 
 # ============================================================
-# ANGULAR: UPDATE PRODUCT
-# PATCH /api/angularProduct/update
+# UPDATE PRODUCT
 # ============================================================
 @angular_product_bp.patch("/update")
 @jwt_required()
 def angular_update_product():
     data = request.get_json() or {}
 
-    product_id = data.get("productId")
-    updated_data = data.get("updatedData", {})
-
-    if not product_id:
-        return jsonify({"error": "productId required"}), 400
-
-    product = Product.query.get(product_id)
+    product = Product.query.get(data.get("productId"))
     if not product:
         return jsonify({"error": "Product not found"}), 404
 
-    product.name = updated_data.get("name", product.name)
-    product.price = float(updated_data.get("price", product.price))
-    product.description = updated_data.get("description", product.description)
-    product.image = updated_data.get("image", product.image)
-    product.category = updated_data.get("category", product.category)
-    product.color = updated_data.get("color", product.color)
+    updated = data.get("updatedData", {})
+
+    product.name = updated.get("name", product.name)
+    product.price = float(updated.get("price", product.price))
+    product.description = updated.get("description", product.description)
+    product.image = updated.get("image", product.image)
+    product.category = updated.get("category", product.category)
+    product.color = updated.get("color", product.color)
+    product.stock = int(updated.get("stock", product.stock))
 
     db.session.commit()
 
-    return jsonify({
-        "message": "Product updated",
-        "_id": product.id
-    }), 200
+    return jsonify({"message": "Product updated"}), 200
 
 
 # ============================================================
-# ANGULAR: DELETE PRODUCT
-# DELETE /api/angularProduct/delete
+# DELETE PRODUCT
 # ============================================================
 @angular_product_bp.delete("/delete")
 @jwt_required()
 def angular_delete_product():
     data = request.get_json() or {}
 
-    product_id = data.get("productId")
-
-    if not product_id:
-        return jsonify({"error": "productId required"}), 400
-
-    product = Product.query.get(product_id)
+    product = Product.query.get(data.get("productId"))
     if not product:
         return jsonify({"error": "Product not found"}), 404
 
