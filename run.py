@@ -11,8 +11,16 @@ if __name__ == "__main__":
 // Command to run the Flask application:-
 // Start the virtual environment and run the Flask app on port 5002:
 
+===============================================================================
+
 # Activate the virtual environment
 .\venv\Scripts\activate  
+
+# Run the Flask app on port 5002
+flask run --port 5002
+
+===============================================================================
+
 
 
 $env:FLASK_APP = "run.py"

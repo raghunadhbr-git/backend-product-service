@@ -32,7 +32,9 @@ def decrease_stock():
         qty = int(item["quantity"])
 
         if not product:
-            return jsonify({"error": f"Product {item['product_id']} not found"}), 404
+            return jsonify({
+                "error": f"Product {item['product_id']} not found"
+            }), 404
 
         if product.stock < qty:
             return jsonify({
@@ -55,7 +57,8 @@ def angular_health():
 
 
 # ============================================================
-# ADD PRODUCT
+# ADD PRODUCT (SELLER)
+# POST /api/angularProduct/add
 # ============================================================
 @angular_product_bp.post("/add")
 @jwt_required()
@@ -75,11 +78,15 @@ def angular_add_product():
     db.session.add(product)
     db.session.commit()
 
-    return jsonify({"message": "Product added", "_id": product.id}), 201
+    return jsonify({
+        "message": "Product added",
+        "_id": product.id
+    }), 201
 
 
 # ============================================================
 # GET ALL PRODUCTS
+# GET /api/angularProduct/get
 # ============================================================
 @angular_product_bp.get("/get")
 def angular_get_products():
@@ -98,3 +105,26 @@ def angular_get_products():
         }
         for p in products
     ]), 200
+
+
+# ============================================================
+# 🔥 GET SINGLE PRODUCT (THIS WAS MISSING)
+# GET /api/angularProduct/get/<id>
+# ============================================================
+@angular_product_bp.get("/get/<int:id>")
+def angular_get_single_product(id):
+    product = Product.query.get(id)
+
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+
+    return jsonify({
+        "_id": product.id,
+        "name": product.name,
+        "price": product.price,
+        "description": product.description,
+        "image": product.image,
+        "category": product.category,
+        "color": product.color,
+        "stock": product.stock
+    }), 200
