@@ -1,4 +1,4 @@
-🟩 CELL 2 — PRODUCT SERVICE (Products, Stock)
+🟩 PROJECT 2 — PRODUCT SERVICE (Products, Stock)
 # =====================================================
 # PRODUCT SERVICE – DATABASE INSPECTION (FLASK SHELL)
 # =====================================================
