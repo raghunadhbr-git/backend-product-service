@@ -29,14 +29,25 @@ logs/
 *.gz
 
 # ============================================
-# DOCUMENTATION
-# ============================================
-
-# ============================================
 # FLASK MIGRATIONS
 # ============================================
 # Keep migration source files
 migrations/versions/*.pyc
+
+# ============================================
+# PYTEST / TESTING ARTIFACTS
+# ============================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+pytestdebug.log
+junit.xml
+
+# ============================================
+# COVERAGE REPORTS
+# ============================================
+coverage.xml
 
 # ============================================
 # OS / EDITOR FILES
@@ -57,3 +68,13 @@ Thumbs.db
 *.tmp
 *.bak
 *.swp
+
+
+##### Thats it! Happy coding! #####   
+
+
+
+
+
+
+
