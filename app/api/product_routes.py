@@ -1,11 +1,22 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from ..extensions import db
-from ..models.product import ProductVariant
+from ..models.product import Product
 
 product_bp = Blueprint("products", __name__)
+angular_product_bp = Blueprint("angular_products", __name__)
+
+# ============================================================
+# PRODUCT SERVICE HEALTH
+# ============================================================
+@product_bp.get("/")
+def product_service_health():
+    return jsonify({"status": "product-service UP"}), 200
 
 
+# ============================================================
+# DECREASE PRODUCT STOCK (ORDER PLACED)
+# ============================================================
 @product_bp.post("/decrease-stock")
 @jwt_required()
 def decrease_stock():
@@ -15,40 +26,42 @@ def decrease_stock():
     if not items:
         return jsonify({"error": "No items provided"}), 400
 
-    try:
-        # 🔒 Lock rows & validate first
-        variants = {}
+    for item in items:
+        product = Product.query.get(item["product_id"])
+        qty = int(item["quantity"])
 
-        for item in items:
-            variant_id = item["variant_id"]
-            qty = int(item["quantity"])
+        if not product:
+            return jsonify({"error": "Product not found"}), 404
 
-            variant = (
-                ProductVariant.query
-                .filter_by(id=variant_id)
-                .with_for_update()
-                .first()
-            )
+        if product.stock < qty:
+            return jsonify({"error": "Insufficient stock"}), 400
 
-            if not variant:
-                return jsonify({
-                    "error": f"Variant {variant_id} not found"
-                }), 404
+        product.stock -= qty
 
-            if variant.stock < qty:
-                return jsonify({
-                    "error": f"Insufficient stock for variant {variant_id}"
-                }), 400
+    db.session.commit()
+    return jsonify({"message": "Stock decreased"}), 200
 
-            variants[variant] = qty
 
-        # 🔻 Deduct stock
-        for variant, qty in variants.items():
-            variant.stock -= qty
+# ============================================================
+# 🔥 RESTORE PRODUCT STOCK (CANCEL / RETURN)
+# ============================================================
+@product_bp.post("/restore-stock")
+@jwt_required()
+def restore_stock():
+    data = request.get_json() or {}
+    items = data.get("items", [])
 
-        db.session.commit()
-        return jsonify({"message": "Stock updated successfully"}), 200
+    if not items:
+        return jsonify({"error": "No items provided"}), 400
 
-    except Exception:
-        db.session.rollback()
-        return jsonify({"error": "Stock update failed"}), 500
+    for item in items:
+        product = Product.query.get(item["product_id"])
+        qty = int(item["quantity"])
+
+        if not product:
+            return jsonify({"error": "Product not found"}), 404
+
+        product.stock += qty
+
+    db.session.commit()
+    return jsonify({"message": "Stock restored"}), 200
