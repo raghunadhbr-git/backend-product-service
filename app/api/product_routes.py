@@ -1,15 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from ..extensions import db
-from ..models.product import Product
+from ..models.product import ProductVariant
 
 product_bp = Blueprint("products", __name__)
-angular_product_bp = Blueprint("angular_products", __name__)
-
-
-@product_bp.get("/")
-def product_service_health():
-    return jsonify({"status": "product-service UP"}), 200
 
 
 @product_bp.post("/decrease-stock")
@@ -21,76 +15,40 @@ def decrease_stock():
     if not items:
         return jsonify({"error": "No items provided"}), 400
 
-    for item in items:
-        product = Product.query.get(item["product_id"])
-        qty = int(item["quantity"])
+    try:
+        # 🔒 Lock rows & validate first
+        variants = {}
 
-        if not product:
-            return jsonify({"error": "Product not found"}), 404
+        for item in items:
+            variant_id = item["variant_id"]
+            qty = int(item["quantity"])
 
-        if product.stock < qty:
-            return jsonify({"error": "Insufficient stock"}), 400
+            variant = (
+                ProductVariant.query
+                .filter_by(id=variant_id)
+                .with_for_update()
+                .first()
+            )
 
-        product.stock -= qty
+            if not variant:
+                return jsonify({
+                    "error": f"Variant {variant_id} not found"
+                }), 404
 
-    db.session.commit()
-    return jsonify({"message": "Stock updated"}), 200
+            if variant.stock < qty:
+                return jsonify({
+                    "error": f"Insufficient stock for variant {variant_id}"
+                }), 400
 
+            variants[variant] = qty
 
-@angular_product_bp.post("/add")
-@jwt_required()
-def angular_add_product():
-    data = request.get_json() or {}
+        # 🔻 Deduct stock
+        for variant, qty in variants.items():
+            variant.stock -= qty
 
-    product = Product(
-        name=data.get("name"),
-        price=float(data.get("price")),
-        description=data.get("description", ""),
-        image=data.get("image", ""),
-        category=data.get("category", ""),
-        color=data.get("color", ""),
-        stock=int(data.get("stock", 0))
-    )
+        db.session.commit()
+        return jsonify({"message": "Stock updated successfully"}), 200
 
-    db.session.add(product)
-    db.session.commit()
-
-    return jsonify({"message": "Product added", "_id": product.id}), 201
-
-
-@angular_product_bp.get("/get")
-def angular_get_products():
-    products = Product.query.all()
-
-    return jsonify([
-        {
-            "_id": p.id,
-            "name": p.name,
-            "price": p.price,
-            "description": p.description,
-            "image": p.image,
-            "category": p.category,
-            "color": p.color,
-            "stock": p.stock
-        }
-        for p in products
-    ]), 200
-
-
-@angular_product_bp.get("/get/<int:id>")
-def angular_get_single_product(id):
-    product = Product.query.get(id)
-
-    if not product:
-        return jsonify({"error": "Product not found"}), 404
-
-    return jsonify({
-        "_id": product.id,
-        "name": product.name,
-        "price": product.price,
-        "description": product.description,
-        "image": product.image,
-        "category": product.category,
-        "color": product.color,
-        "stock": product.stock
-    }), 200
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Stock update failed"}), 500
