@@ -13,11 +13,32 @@ class Product(db.Model):
 
     image = db.Column(db.String(500))
     category = db.Column(db.String(100))
-    color = db.Column(db.String(50))
 
+    # ⚠️ TEMPORARY — DO NOT REMOVE YET
+    color = db.Column(db.String(50))
     stock = db.Column(db.Integer, nullable=False, default=0)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<Product {self.id} {self.name} stock={self.stock}>"
+        return f"<Product {self.id} {self.name}>"
+
+
+class ProductVariant(db.Model):
+    __tablename__ = "product_variants"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    product_id = db.Column(
+        db.Integer,
+        db.ForeignKey("products.id"),
+        nullable=False
+    )
+
+    color = db.Column(db.String(50), nullable=False)
+    stock = db.Column(db.Integer, nullable=False, default=0)
+
+    product = db.relationship("Product", backref="variants")
+
+    def __repr__(self):
+        return f"<Variant product={self.product_id} color={self.color} stock={self.stock}>"

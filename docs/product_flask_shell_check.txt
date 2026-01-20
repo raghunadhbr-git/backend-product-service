@@ -1,0 +1,48 @@
+# ================================
+# PRODUCT SERVICE – FLASK SHELL CHECK
+# ================================
+
+# 1️⃣ Go to project root
+cd E:\ecommerce-platform\backend-product-service
+
+# 2️⃣ Activate virtual environment
+.\venv\Scripts\activate
+
+# 3️⃣ Set Flask app (Windows PowerShell)
+$env:FLASK_APP = "run.py"
+
+# Step: Set DATABASE_URL
+$env:DATABASE_URL="postgresql+psycopg://neondb_owner:npg_EvfIxt5VdU4b@ep-blue-moon-a1jdsww9-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+# 4️⃣ Open Flask shell
+flask shell
+
+# ================================
+# INSIDE FLASK SHELL (>>>)
+# ================================
+
+from app.extensions import db
+from app.models.product import Product, ProductVariant
+
+print("---- PRODUCTS ----")
+for p in Product.query.all():
+    print(p.id, p.name, p.color, p.stock)
+
+print("---- VARIANTS ----")
+for v in ProductVariant.query.all():
+    print(v.product_id, v.color, v.stock)
+
+print("Product count:", Product.query.count())
+print("Variant count:", ProductVariant.query.count())
+
+# Exit shell
+exit()
+
+# REMOVE DATABASE_URL (CLEAN & SAFE):
+if (Test-Path Env:DATABASE_URL) {
+    Remove-Item Env:DATABASE_URL
+    Write-Host "DATABASE_URL removed" -ForegroundColor Green
+} else {
+    Write-Host "DATABASE_URL not set" -ForegroundColor Yellow
+}
+
