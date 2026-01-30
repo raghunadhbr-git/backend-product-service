@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..extensions import db
+from app.extensions import db
 
 
 class Product(db.Model):
@@ -14,7 +14,7 @@ class Product(db.Model):
     image = db.Column(db.String(500))
     category = db.Column(db.String(100))
 
-    # ⚠️ KEEP TEMP (used by old Angular forms)
+    # ⚠️ TEMP legacy (Angular compatibility)
     color = db.Column(db.String(50))
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
