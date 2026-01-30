@@ -14,9 +14,8 @@ class Product(db.Model):
     image = db.Column(db.String(500))
     category = db.Column(db.String(100))
 
-    # ⚠️ TEMPORARY — DO NOT REMOVE YET
+    # ⚠️ KEEP TEMP (used by old Angular forms)
     color = db.Column(db.String(50))
-    stock = db.Column(db.Integer, nullable=False, default=0)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

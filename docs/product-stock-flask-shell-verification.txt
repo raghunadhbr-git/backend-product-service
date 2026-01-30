@@ -1,0 +1,129 @@
+====================================================================
+PRODUCT SERVICE – STOCK DECREASE & RESTORE VERIFICATION (FLASK SHELL)
+====================================================================
+
+PURPOSE:
+--------
+Verify that product stock is managed ONLY via ProductVariant
+and that decrease + restore operations work correctly at DB level.
+
+SERVICE:
+--------
+backend-product-service
+Feature Branch: feature/stock-cart-order-flow
+
+--------------------------------------------------------------------
+STEP 1: START FLASK SHELL
+--------------------------------------------------------------------
+
+flask shell
+
+--------------------------------------------------------------------
+STEP 2: IMPORT MODELS
+--------------------------------------------------------------------
+
+from app.extensions import db
+from app.models.product import Product, ProductVariant
+
+--------------------------------------------------------------------
+STEP 3: VERIFY TABLE STRUCTURE
+--------------------------------------------------------------------
+
+# Product should NOT have stock
+Product.__table__.columns.keys()
+
+Expected:
+['id', 'name', 'description', 'price', 'image', 'category', 'color', 'created_at']
+
+# Variant MUST have stock
+ProductVariant.__table__.columns.keys()
+
+Expected:
+['id', 'product_id', 'color', 'stock']
+
+--------------------------------------------------------------------
+STEP 4: CREATE PRODUCT
+--------------------------------------------------------------------
+
+p = Product(
+    name="Stock Test Product",
+    description="Testing decrease and restore",
+    price=1000,
+    category="Test"
+)
+
+db.session.add(p)
+db.session.commit()
+
+p.id
+
+--------------------------------------------------------------------
+STEP 5: CREATE VARIANTS WITH STOCK
+--------------------------------------------------------------------
+
+v1 = ProductVariant(
+    product_id=p.id,
+    color="Black",
+    stock=10
+)
+
+v2 = ProductVariant(
+    product_id=p.id,
+    color="White",
+    stock=5
+)
+
+db.session.add_all([v1, v2])
+db.session.commit()
+
+--------------------------------------------------------------------
+STEP 6: VERIFY INITIAL STOCK
+--------------------------------------------------------------------
+
+variants = ProductVariant.query.filter_by(product_id=p.id).all()
+[(v.id, v.color, v.stock) for v in variants]
+
+Expected:
+[(2, 'Black', 10), (3, 'White', 5)]
+
+--------------------------------------------------------------------
+STEP 7: DECREASE STOCK (SIMULATE ORDER)
+--------------------------------------------------------------------
+
+black = ProductVariant.query.filter_by(
+    product_id=p.id,
+    color="Black"
+).first()
+
+black.stock -= 4
+db.session.commit()
+
+[(v.color, v.stock) for v in ProductVariant.query.filter_by(product_id=p.id)]
+
+Expected:
+[('Black', 6), ('White', 5)]
+
+--------------------------------------------------------------------
+STEP 8: RESTORE STOCK (SIMULATE CANCEL / RETURN)
+--------------------------------------------------------------------
+
+black.stock += 4
+db.session.commit()
+
+[(v.color, v.stock) for v in ProductVariant.query.filter_by(product_id=p.id)]
+
+Expected:
+[('Black', 10), ('White', 5)]
+
+--------------------------------------------------------------------
+RESULT:
+-------
+✔ Product has NO stock column
+✔ Variant stock decreases correctly
+✔ Variant stock restores correctly
+✔ DB logic verified and stable
+
+STATUS:
+-------
+PRODUCT SERVICE STOCK LOGIC VERIFIED
+====================================================================
