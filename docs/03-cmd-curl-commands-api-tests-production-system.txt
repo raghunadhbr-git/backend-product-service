@@ -1,5 +1,5 @@
 ====================================================================
-FULL E-COMMERCE BACKEND – INTEGRATION TESTS
+FULL E-COMMERCE BACKEND – PRODUCT + STOCK INTEGRATION TESTS
 SELLER + CUSTOMER FLOW
 (Auth Service + Product Service)
 LOCAL + LIVE (RENDER)
@@ -33,14 +33,17 @@ REM SET PRODUCT_BASE_URL=https://backend-product-service-ipnq.onrender.com
 COMMON VARIABLES (SET MANUALLY AFTER STEPS)
 ====================================================================
 
-REM 🔑 Paste SELLER JWT token after seller login
+REM 🔑 SELLER JWT (after login)
 SET SELLER_TOKEN=PASTE_SELLER_ACCESS_TOKEN_HERE
 
-REM 🔑 Paste CUSTOMER JWT token after customer login
+REM 🔑 CUSTOMER JWT (after login)
 SET CUSTOMER_TOKEN=PASTE_CUSTOMER_ACCESS_TOKEN_HERE
 
-REM 🆔 Paste product ID after product creation
+REM 🆔 PRODUCT ID (after product creation)
 SET PRODUCT_ID=PASTE_PRODUCT_ID_HERE
+
+REM 🆔 VARIANT ID (after variant creation / fetch)
+SET VARIANT_ID=PASTE_VARIANT_ID_HERE
 
 ====================================================================
 AUTH SERVICE
@@ -65,8 +68,7 @@ curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"seller@test.com\",\"password\":\"seller123\"}"
 
-REM ⬆ COPY access_token
-REM ⬆ PASTE INTO SELLER_TOKEN ABOVE
+REM ⬆ COPY access_token → SET SELLER_TOKEN
 
 --------------------------------------------------
 4️⃣ SELLER PROFILE (JWT VERIFY)
@@ -75,7 +77,7 @@ curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
 -H "Authorization: Bearer %SELLER_TOKEN%"
 
 ====================================================================
-PRODUCT SERVICE
+PRODUCT SERVICE – CORE
 ====================================================================
 
 --------------------------------------------------
@@ -89,10 +91,9 @@ curl %PRODUCT_BASE_URL%/api/angularProduct/health
 curl -X POST %PRODUCT_BASE_URL%/api/angularProduct/add ^
 -H "Authorization: Bearer %SELLER_TOKEN%" ^
 -H "Content-Type: application/json" ^
--d "{\"name\":\"Laptop\",\"price\":55000,\"description\":\"Gaming laptop\"}"
+-d "{\"name\":\"Laptop\",\"price\":55000,\"description\":\"Gaming laptop\",\"category\":\"Electronics\"}"
 
-REM ⬆ COPY product ID FROM RESPONSE
-REM ⬆ PASTE INTO PRODUCT_ID ABOVE
+REM ⬆ COPY product ID → SET PRODUCT_ID
 
 --------------------------------------------------
 7️⃣ SELLER VIEWS ALL PRODUCTS
@@ -105,48 +106,103 @@ curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get
 curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
 
 ====================================================================
-CUSTOMER / USER FLOW
+PRODUCT VARIANT + STOCK (FEATURE BRANCH)
 ====================================================================
 
 --------------------------------------------------
-9️⃣ CUSTOMER REGISTRATION
+9️⃣ CHECK PRODUCT VARIANTS (EXPECT EMPTY INITIALLY)
+--------------------------------------------------
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+REM ⬆ From response, note variant IDs when present
+
+--------------------------------------------------
+🔟 DECREASE VARIANT STOCK (ORDER PLACED SIMULATION)
+--------------------------------------------------
+curl -X POST %PRODUCT_BASE_URL%/api/v1/products/decrease-stock ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"items\": [
+    {
+      \"product_id\": %PRODUCT_ID%,
+      \"variant_id\": %VARIANT_ID%,
+      \"quantity\": 2
+    }
+  ]
+}"
+
+EXPECTED:
+- HTTP 200
+- Stock reduced for variant
+
+--------------------------------------------------
+1️⃣1️⃣ VERIFY STOCK DECREASE
+--------------------------------------------------
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+EXPECTED:
+- Variant stock reduced by quantity
+
+--------------------------------------------------
+1️⃣2️⃣ RESTORE VARIANT STOCK (CANCEL / RETURN)
+--------------------------------------------------
+curl -X POST %PRODUCT_BASE_URL%/api/v1/products/restore-stock ^
+-H "Authorization: Bearer %CUSTOMER_TOKEN%" ^
+-H "Content-Type: application/json" ^
+-d "{
+  \"items\": [
+    {
+      \"product_id\": %PRODUCT_ID%,
+      \"variant_id\": %VARIANT_ID%,
+      \"quantity\": 2
+    }
+  ]
+}"
+
+EXPECTED:
+- HTTP 200
+- Stock restored
+
+--------------------------------------------------
+1️⃣3️⃣ VERIFY STOCK RESTORE
+--------------------------------------------------
+curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
+
+EXPECTED:
+- Variant stock returned to original value
+
+====================================================================
+CUSTOMER FLOW (READ-ONLY)
+====================================================================
+
+--------------------------------------------------
+1️⃣4️⃣ CUSTOMER REGISTRATION
 --------------------------------------------------
 curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/register ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"user@test.com\",\"password\":\"user123\",\"role\":\"user\"}"
 
 --------------------------------------------------
-🔟 CUSTOMER LOGIN (COPY access_token)
+1️⃣5️⃣ CUSTOMER LOGIN (COPY access_token)
 --------------------------------------------------
 curl -X POST %AUTH_BASE_URL%/api/v1/auth/angularUser/login ^
 -H "Content-Type: application/json" ^
 -d "{\"email\":\"user@test.com\",\"password\":\"user123\"}"
 
-REM ⬆ COPY access_token
-REM ⬆ PASTE INTO CUSTOMER_TOKEN ABOVE
+REM ⬆ COPY access_token → SET CUSTOMER_TOKEN
 
 --------------------------------------------------
-1️⃣1️⃣ CUSTOMER PROFILE (JWT VERIFY)
+1️⃣6️⃣ CUSTOMER PROFILE
 --------------------------------------------------
 curl -X GET %AUTH_BASE_URL%/api/v1/auth/profile ^
 -H "Authorization: Bearer %CUSTOMER_TOKEN%"
 
 --------------------------------------------------
-1️⃣2️⃣ CUSTOMER VIEWS ALL PRODUCTS
+1️⃣7️⃣ CUSTOMER VIEWS PRODUCTS
 --------------------------------------------------
 curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get
 
---------------------------------------------------
-1️⃣3️⃣ CUSTOMER VIEWS SINGLE PRODUCT
---------------------------------------------------
-curl -X GET %PRODUCT_BASE_URL%/api/angularProduct/get/%PRODUCT_ID%
-
---------------------------------------------------
-1️⃣4️⃣ CUSTOMER LOGOUT
---------------------------------------------------
-curl -X POST %AUTH_BASE_URL%/api/v1/auth/logout ^
--H "Authorization: Bearer %CUSTOMER_TOKEN%"
-
 ====================================================================
-END OF INTEGRATION TEST FILE
+END OF PRODUCT + STOCK INTEGRATION TEST FILE
 ====================================================================
