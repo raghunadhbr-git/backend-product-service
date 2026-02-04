@@ -1,0 +1,41 @@
+PROJECT: Product Service (Flask)
+BRANCH: feature/product-service
+
+====================================
+PRODUCT SERVICE GIT WORKFLOW
+====================================
+
+1. Checkout feature branch
+   git checkout feature/product-service
+
+2. Check changes
+   git status
+
+3. Stage all files
+   git add .
+
+4. Commit product changes
+   git commit -m "feat: product and variant stock management added"
+
+5. Push branch
+   git push origin feature/product-service
+
+====================================
+FEATURES COMPLETED
+====================================
+
+- Product CRUD
+- Product variants (color, stock)
+- Stock decrease on order
+- Stock restore on cancel
+- Angular compatible read APIs
+- JWT protected seller routes
+
+====================================
+MERGE NOTE
+====================================
+
+Product service ready for production merge.
+
+Merge command:
+git merge feature/product-service
