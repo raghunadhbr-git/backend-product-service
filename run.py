@@ -23,7 +23,7 @@ flask run --port 5002
 
 
 
-$env:FLASK_APP = "run.py"
+$env:FLASK_APP = "run.py" 
 
 
 # Confirm by running:
