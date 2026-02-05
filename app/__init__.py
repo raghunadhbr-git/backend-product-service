@@ -19,4 +19,9 @@ def create_app(testing=False):
     app.register_blueprint(product_bp, url_prefix="/api/v1/products")
     app.register_blueprint(angular_product_bp, url_prefix="/api/angularProduct")
 
+    @app.get("/")
+    def health():
+        return jsonify({"status": "product-service UP"}), 200
+
+    
     return app
