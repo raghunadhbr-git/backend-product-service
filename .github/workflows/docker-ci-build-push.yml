@@ -2,7 +2,7 @@
 # 🚀 CI/CD – Product Backend (Docker → Railway) 
 # ============================================================
 
-name: 🚀 CI/CD – Product Backend (Docker → Railway)
+name: 🚀 CI/CD – Product Backend (Docker → Railway) 
 
 on:
   push:
