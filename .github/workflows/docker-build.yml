@@ -1,12 +1,12 @@
 # ============================================================
-# 🚀 CI - Build & Push Docker Image (Auth Service)
+# 🚀 CI - Build & Push Docker Image (backend-product-service)
 # ============================================================
 
 # ============================================================
-# 🚀 CI - Build & Push Docker Image (Auth Service)
+# 🚀 CI - Build & Push Docker Image (backend-product-service)
 # ============================================================
 
-name: 🚀 Build & Push Auth Service Image (Manual)
+name: 🚀 Build & Push backend-product-service Image (Manual)
 
 on:
   workflow_dispatch:   # 🔥 ONLY manual trigger
@@ -37,14 +37,14 @@ jobs:
       # ==============================
       - name: 🐳 Build Docker Image
         run: |
-          docker build -t pythoncodelife/auth-service:latest .
+          docker build -t pythoncodelife/backend-product-service:latest .
 
       # ==============================
       # Step 4: Push Docker Image
       # ==============================
       - name: 📤 Push Docker Image
         run: |
-          docker push pythoncodelife/auth-service:latest
+          docker push pythoncodelife/backend-product-service:latest
 
       # ==============================
       # Step 5: Info (for clarity)
@@ -53,4 +53,4 @@ jobs:
         run: |
           echo "✅ Image pushed successfully"
           echo "👉 Railway pulls this:"
-          echo "docker pull docker.io/pythoncodelife/auth-service:latest"
+          echo "docker pull docker.io/pythoncodelife/backend-product-service:latest"
