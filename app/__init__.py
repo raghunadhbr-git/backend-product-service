@@ -1,6 +1,12 @@
+# =========================
+# Flask App Factory (FIXED CORS)
+# =========================
+# Cell 1
+
 from flask import Flask, jsonify
 from app.config import Config
-from app.extensions import db, migrate, jwt, cors, setup_logging
+from app.extensions import db, migrate, jwt, setup_logging
+from flask_cors import CORS
 
 
 def create_app(testing=False):
@@ -9,7 +15,16 @@ def create_app(testing=False):
 
     setup_logging(app)
 
-    cors.init_app(app)
+    # =========================
+    # 🔥 FIXED CORS CONFIG
+    # =========================
+    CORS(
+        app,
+        resources={r"/*": {"origins": "*"}},
+        supports_credentials=True,
+        allow_headers=["Content-Type", "Authorization"]
+    )
+
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
@@ -23,5 +38,4 @@ def create_app(testing=False):
     def health():
         return jsonify({"status": "Product-Service-UP"}), 200
 
-    
     return app
