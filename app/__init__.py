@@ -1,7 +1,6 @@
 # =========================
-# Flask App Factory (FIXED CORS)
+# Flask App Factory (FINAL FIXED CORS)
 # =========================
-# Cell 1
 
 from flask import Flask, jsonify
 from app.config import Config
@@ -16,13 +15,20 @@ def create_app(testing=False):
     setup_logging(app)
 
     # =========================
-    # 🔥 FIXED CORS CONFIG
+    # 🔥 FINAL CORS FIX
     # =========================
     CORS(
         app,
-        resources={r"/*": {"origins": "*"}},
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "https://angular-ecommerce-site-ekkt5b8m0-raghunadh28-1386s-projects.vercel.app"
+                ]
+            }
+        },
         supports_credentials=True,
-        allow_headers=["Content-Type", "Authorization"]
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     )
 
     db.init_app(app)
