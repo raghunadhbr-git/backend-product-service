@@ -3,15 +3,26 @@ from app.extensions import db
 
 
 def create_product(data):
-    product = Product(
-        name=data["name"],
-        price=data["price"],
-        description=data.get("description"),
-        category=data.get("category")
-    )
-    db.session.add(product)
-    db.session.commit()
-    return product
+    try:
+        if not data or "name" not in data or "price" not in data:
+            raise ValueError("Missing required fields")
+
+        product = Product(
+            name=data["name"],
+            price=data["price"],
+            description=data.get("description"),
+            category=data.get("category"),
+            image=data.get("image")
+        )
+
+        db.session.add(product)
+        db.session.commit()
+
+        return product
+
+    except Exception as e:
+        print("❌ SERVICE ERROR:", str(e))
+        raise
 
 
 def get_product(product_id):

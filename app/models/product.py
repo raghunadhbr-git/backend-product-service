@@ -14,9 +14,6 @@ class Product(db.Model):
     image = db.Column(db.String(500))
     category = db.Column(db.String(100))
 
-    # ⚠️ TEMP legacy (Angular compatibility)
-    color = db.Column(db.String(50))
-
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -40,4 +37,4 @@ class ProductVariant(db.Model):
     product = db.relationship("Product", backref="variants")
 
     def __repr__(self):
-        return f"<Variant product={self.product_id} color={self.color} stock={self.stock}>"
+        return f"<Variant product={self.product_id} stock={self.stock}>"
