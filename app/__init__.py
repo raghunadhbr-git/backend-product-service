@@ -1,5 +1,5 @@
 # =========================
-# Flask App Factory (FINAL FIXED CORS)
+# Flask App Factory (FINAL STABLE CORS)
 # =========================
 
 from flask import Flask, jsonify
@@ -15,7 +15,7 @@ def create_app(testing=False):
     setup_logging(app)
 
     # =========================
-    # 🔥 FINAL CORS FIX
+    # 🔥 FINAL CORS (CLEAN + STABLE)
     # =========================
     CORS(
         app,
@@ -26,7 +26,6 @@ def create_app(testing=False):
                 ]
             }
         },
-        supports_credentials=True,
         allow_headers=["Content-Type", "Authorization"],
         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     )
